@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BotNet Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .command-input {
+            text-align: center;
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button, a {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover, a:hover {
+            background-color: #0056b3;
+        }
+        .toggle-view {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>BotNet Dashboard</h1>
+    <div class="toggle-view">
+        {% if not show_all %}
+        <a href="/dashboard?all=true">Show All Bots</a>
+        {% else %}
+        <a href="/dashboard?page=1&limit=10">Show Paginated View</a>
+        {% endif %}
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>IP Address</th>
+                <th>Last Seen</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bot in bots %}
+            <tr>
+                <td>{{ bot[0] }}</td>
+                <td>{{ bot[1] }}</td>
+                <td>{{ bot[2] }}</td>
+                <td>
+                    <button onclick="sendCommand('{{ bot[0] }}')">Send Command</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="command-input">
+        <label for="command">Command to Send:</label>
+        <input type="text" id="command" placeholder="Enter a command">
+        <button onclick="executeAll()">Execute All</button>
+    </div>
+
+    <script>
+        function sendCommand(botId) {
+            const command = document.getElementById('command').value;
+            if (!command) {
+                alert('Please enter a command first!');
+                return;
+            }
+
+            fetch('/send_command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bot_id: botId, command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`Command sent to Bot ${botId}: "${data.command}"`);
+                } else {
+                    alert('Failed to send command');
+                }
+            });
+        }
+
+        function executeAll() {
+            const command = document.getElementById('command').value;
+            if (!command) {
+                alert('Please enter a command first!');
+                return;
+            }
+
+            fetch('/execute_all', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`Command executed for all bots: "${command}"`);
+                } else {
+                    alert('Failed to execute command for all bots');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
