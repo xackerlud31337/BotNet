@@ -109,7 +109,7 @@ def execute_all():
     logging.info(f"Executing command for all bots: {command}")
     with sqlite3.connect('bots.db') as conn:
         cursor = conn.cursor()
-        # Log the command for each bot in the database
+        # Log the command for each bot in the database.
         cursor.execute("SELECT id FROM bots")
         bot_ids = cursor.fetchall()
         for bot_id in bot_ids:
